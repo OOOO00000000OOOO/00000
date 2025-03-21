@@ -1,0 +1,533 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Fractal BackgroundVisible="True" BackColor="FFFFFF00" BorderWidth="0" StripBorder="True" PixelSize="0.00548779710473845" Pixels.X="729" Pixels.Y="729" ClassicProcessing="None" OrbitTrapProcessing="ActivateControllers" ClassicMaxDwell="1" CycleDetectionActive="False" SolidGuessing="None">
+  <FractalNotes><![CDATA[]]></FractalNotes>
+  <FractalEquation Id="adb85431-618d-491f-b8c5-08555b119814" Title="Pixel" MaxPower="1">
+    <Instructions><![CDATA[
+comment:
+  
+  This equation can be used when no equation is necessary.
+  By setting the MinDwell/MaxDwell to 1 below, we limit
+  the iteration to a single step for best performance.
+  
+global:
+  
+  FSK.OverrideValue("MinDwell", 1)
+  FSK.OverrideValue("MaxDwell", 1)
+  
+iterate:
+  
+  z = c
+]]></Instructions>
+    <PropertyValueOverrides />
+  </FractalEquation>
+  <TransformationArray>
+    <Transformation Id="7fc4bc2c-b961-4431-b074-277d7b29842b" Title="Identity">
+      <Instructions><![CDATA[]]></Instructions>
+      <PropertyValueOverrides />
+    </Transformation>
+  </TransformationArray>
+  <TransformationArray>
+    <Transformation Id="7fc4bc2c-b961-4431-b074-277d7b29842b" Title="Identity">
+      <Instructions><![CDATA[]]></Instructions>
+      <PropertyValueOverrides />
+    </Transformation>
+  </TransformationArray>
+  <AlternateValueInfo />
+  <AlternateValueInfo />
+  <OrbitTrapInfo TrapValueNTrapPreProcessing="CenterReflect" TrapValueNTrapStyle="Flat" TrapValueNSmoothing="Linear" TrapValueNTrapPreProcessing1="CenterReflect" TrapValueNTrapStyle1="Flat" TrapValueNSmoothing1="Linear" TrapValueNTrapPreProcessing2="CenterReflect" TrapValueNTrapStyle2="Flat" TrapValueNSmoothing2="Linear" TrapValueNTrapPreProcessing3="CenterReflect" TrapValueNTrapStyle3="Flat" TrapValueNSmoothing3="Linear">
+    <OrbitTrapArray TrapIndexMapping="CombinedIndex" TrapDeltaMapping="TrapDelta" BlendValues="False">
+      <OrbitTransform />
+      <OrbitTransform />
+      <TransformationArray>
+        <Transformation Id="7fc4bc2c-b961-4431-b074-277d7b29842b" Title="Identity">
+          <Instructions><![CDATA[]]></Instructions>
+          <PropertyValueOverrides />
+        </Transformation>
+      </TransformationArray>
+      <TransformationArray>
+        <Transformation Id="7fc4bc2c-b961-4431-b074-277d7b29842b" Title="Identity">
+          <Instructions><![CDATA[]]></Instructions>
+          <PropertyValueOverrides />
+        </Transformation>
+      </TransformationArray>
+      <SymmetryTransformation Id="8301dc6c-2273-4fb9-ada8-2ded2833031f" Title="Identity">
+        <Instructions><![CDATA[]]></Instructions>
+        <PropertyValueOverrides />
+      </SymmetryTransformation>
+      <OrbitTrapItem>
+        <OrbitTrap Id="4e4b2e73-dc52-4107-bb98-f9abb8745748" Title="Unit Circle Group">
+          <Instructions><![CDATA[
+comment:
+  
+  trappedPoint.Index is the base circle index: 0 (center), 1-N (in ring)
+  trappedPoint.Delta is the level: 0 - Steps-1
+  
+  See the paper:
+    "Evolution of Math into Art via Mobius Transformations"
+  by Anne M. Burns, Department of Mathematics,
+  Long Island University.
+  http://myweb.cwpost.liu.edu/aburns/
+  
+  Also, see pages 88-89 in the book:
+    "Indra's Pearls, The Vision of Felix Klein"
+  by David Mumford, Caroline Series, David Wright.
+  http://klein.math.okstate.edu/IndrasPearls/
+  
+global:
+  
+  Complex ShowCenter[] = LC1,LC2,LC3,LC4,LC5,LC6,LC7,LC8,LC9,LC10,LC11,LC12,LC13,LC14,LC15,LC16
+  Complex ShowRing[] = LR1,LR2,LR3,LR4,LR5,LR6,LR7,LR8,LR9,LR10,LR11,LR12,LR13,LR14,LR15,LR16
+  AbsV = Sqrt(AbsU^2 - 1)
+  u = AbsU * Cis(DegreeToRadian(ArgU))
+  v = AbsV * Cis(DegreeToRadian(ArgV))
+  Mobius UnitCircleGroup = Mobius(u, v, Conj(v), Conj(u))
+  Mobius m[N+1]
+  '
+  ' Given N, find radius R such that N circles with radius R can be 
+  ' placed along the inside of the unit circle, each tangent to the 
+  ' unit circle and each of its two adjacent neighbors. The centers 
+  ' of all circles are a distance of 1-R from the origin. The centers
+  ' of all circles form a regular polygon P with N sides and each edge
+  ' has length = 2*(1-R)*Sin(pi/N). Since all N circles are pairwise 
+  ' tangent, the edge of P must equal 2*R, so 2*R = 2*(1-R)*Sin(pi/N).
+  ' Solving for R yields R = 1/(1+1/Sin(pi/N)).
+  '
+  r = 1/(1+1/Sin(Math.PI/N))
+  
+  step = 2*Math.PI/N
+  ang = IIf(Shift, step/2, 0)
+  '
+  ' Generate the Mobius transformation that transforms the
+  ' unit circle into the circle in the center of the ring.
+  '
+  m[0] = Mobius(1-2*r, 0, 0, 1)
+  '
+  ' Generate the set of N Mobius transformations the  
+  ' transform the unit circle into the i'th circle in the 
+  ' ring, where i = 1 to N.
+  '
+  for (i = 1, i <= N, i += 1) {
+    rotate = Cis(ang)
+    
+    m[i] = Mobius.Multiply( \
+      Mobius(r*rotate, (1-r)*rotate, 0, 1), \
+      UnitCircleGroup \
+    )
+    ang += step
+  }
+  '
+  ' Assign Total = the total number of circles.
+  '
+  const Complex Total = 0
+  count = N+1
+  
+  for (i = 0, i < Steps, i += 1) {
+    Total += count
+    count *= N+1
+  }
+  const Circle c[Total]
+  const Complex index[Total]
+  const Complex level[Total]
+  Circle UnitCircle = CircleC(0, 1)
+  '
+  ' Generate the base ring and center circles.
+  '
+  for (i = 0, i <= N, i += 1) {
+    c[i] = Mobius.TransformCircle(m[i], UnitCircle)
+    index[i] = i
+    level[i] = 0
+  }
+  count = N+1
+  max = 0
+  '
+  ' Generate the remaining circles.
+  '
+  if (Steps > 1) {
+    for (i = 1, i < Steps, i += 1) {
+      min = max
+      max = count
+    
+      for (j = min, j < max, j += 1) {
+        for (k = 0, k < N+1, k += 1) {
+          c[count] = Mobius.TransformCircle(m[k], c[j])
+          '
+          ' Skip circles that are too small.
+          '
+          if (c[count].Radius >= RadiusMin) {
+            index[count] = index[j]
+            level[count] = i
+            count += 1
+          }
+        }
+      }
+    }
+  }
+  '
+  ' Reset Total in case you skipped circles that were too small.
+  '
+  Total = count
+  
+  CurveTrap.Initialize( \
+    Center, DegreeToRadian(Angle), Scale, AlternateAngle, 6, False, LineWidth \
+  )
+  '
+  ' Add the circles to the trap based on user criteria.
+  '
+  for (i = 0, i < Total, i += 1) {
+    lev = level[i]
+    idx = index[i]
+    '
+    ' Note: idx=N for center circles.
+    '
+    if (idx = 0) {
+      if (ShowCenter[lev]) {
+        CurveTrap.AddCircle2(c[i], Solid, IIf(Solid, lev, 0), idx, lev)
+      }
+    } else {
+      if (ShowRing[lev]) {
+        CurveTrap.AddCircle2(c[i], Solid, IIf(Solid, lev, 0), idx, lev)
+      }
+    }
+  }
+  
+trap:
+  
+  trappedPoint = CurveTrap.Apply(z)
+  
+properties:
+  
+  divider {
+    caption = "General Options"
+  }
+  option Center {
+    type = Complex
+    caption = "Center"
+    details = "Center of trap"
+    default = 0
+  }
+  option Angle {
+    type = Float
+    caption = "Angle"
+    details = "Angle of rotation"
+    default = 0
+    range = [-360,360]
+  }
+  option Scale {
+    type = Float
+    caption = "Scale"
+    details = "Scale factor applied to trap"
+    range = (0,)
+    default = 2
+  }
+  option Solid {
+    type = Boolean
+    caption = "Solid"
+    details = "Check to create solid trap"
+    default = False
+  }
+  option AlternateAngle {
+    type = Boolean
+    caption = "Alternate Angle"
+    details = "Use alternate angle calculation"
+    default = False
+  }
+  option LineWidth {
+    type = Float
+    caption = "Line Width"
+    details = "Extent of trap on either side of curve (> 0)"
+    range = (0,)
+    default = 0.00411522633744855967078189300413
+    enabled = ~Solid
+  }
+  divider {
+    caption = "U/V Controls"
+  }
+  option AbsU {
+    type = Float
+    caption = "Abs(U)"
+    details = "Magnitude of U (1-2)"
+    default = 1.1
+    range = [1,2]
+  }
+  option ArgU {
+    type = Float
+    caption = "Arg(U)"
+    details = "Angle of U"
+    default = 0
+    range = [-360,360]
+  }
+  option ArgV {
+    type = Float
+    caption = "Arg(V)"
+    details = "Angle of V"
+    default = 180
+    range = [-360,360]
+  }
+  divider {
+    caption = "Circle Controls"
+  }
+  option N {
+    type = IntegerEnum(3,12)
+    caption = "N"
+    details = "Number of base circles"
+    default = 4
+  }
+  option Steps {
+    type = IntegerEnum(1,16)
+    caption = "Steps"
+    details = "Number of inversion steps"
+    default = 7
+  }
+  option Shift {
+    type = Boolean
+    caption = "Shift"
+    details = "Check to rotate initial chain by pi/N"
+    default = False
+  }
+  option RadiusMin {
+    type = Float
+    caption = "Radius Min"
+    details = "Minimum acceptable circle radius"
+    default = 0
+    range = [0,)
+  }
+  #define ShowLevel(Index)
+  
+  divider {
+    caption = "Level #Index# Options"
+  }
+  option LR#Index# {
+    type = Boolean
+    caption = "Show Ring"
+    details = "Show ring of circles at level #Index#"
+    default = True
+    enabled = Steps >= #Index#
+  }
+  option LC#Index# {
+    type = Boolean
+    caption = "Show Center"
+    details = "Show center circle at level #Index#"
+    default = True
+    enabled = Steps >= #Index#
+  }
+  #end
+  
+  #include ShowLevel("1")
+  #include ShowLevel("2")
+  #include ShowLevel("3")
+  #include ShowLevel("4")
+  #include ShowLevel("5")
+  #include ShowLevel("6")
+  #include ShowLevel("7")
+  #include ShowLevel("8")
+  #include ShowLevel("9")
+  #include ShowLevel("10")
+  #include ShowLevel("11")
+  #include ShowLevel("12")
+  #include ShowLevel("13")
+  #include ShowLevel("14")
+  #include ShowLevel("15")
+  #include ShowLevel("16")]]></Instructions>
+          <PropertyValueOverrides>
+            <Option Name="Solid" Type="BooleanOption" Value="True" />
+            <Option Name="LineWidth" Type="FloatOption" Value="0.00411522633744855" />
+            <Option Name="ArgU" Type="FloatOption" Value="180" />
+            <Option Name="ArgV" Type="FloatOption" Value="0" />
+            <Option Name="Steps" Type="IntegerEnumOption" Value="7" />
+            <Option Name="LR1" Type="BooleanOption" Value="False" />
+            <Option Name="LR2" Type="BooleanOption" Value="False" />
+            <Option Name="LR3" Type="BooleanOption" Value="False" />
+            <Option Name="LR4" Type="BooleanOption" Value="False" />
+            <Option Name="LR5" Type="BooleanOption" Value="False" />
+            <Option Name="LR6" Type="BooleanOption" Value="False" />
+            <Option Name="LR7" Type="BooleanOption" Value="False" />
+            <Option Name="LR8" Type="BooleanOption" Value="False" />
+            <Option Name="LR9" Type="BooleanOption" Value="False" />
+            <Option Name="LR10" Type="BooleanOption" Value="False" />
+            <Option Name="LR11" Type="BooleanOption" Value="False" />
+            <Option Name="LR12" Type="BooleanOption" Value="False" />
+            <Option Name="LR13" Type="BooleanOption" Value="False" />
+            <Option Name="LR14" Type="BooleanOption" Value="False" />
+            <Option Name="LR15" Type="BooleanOption" Value="False" />
+            <Option Name="LR16" Type="BooleanOption" Value="False" />
+          </PropertyValueOverrides>
+        </OrbitTrap>
+      </OrbitTrapItem>
+    </OrbitTrapArray>
+    <OrbitTrapMasterController Id="02699986-4214-4098-b68b-48285874bc4e" Title="⠀">
+      <Instructions><![CDATA[
+comment:
+  
+  Return color computed by 1st controller.
+  
+color:
+  
+  color = Controller.Color(0)
+]]></Instructions>
+      <PropertyValueOverrides />
+    </OrbitTrapMasterController>
+    <OrbitTrapControllerArray>
+      <OrbitTrapController Id="29fbd0db-b470-4d0d-ad93-e4d5d937ef86" Title="ⵔ·ⵔ" ApplyDepth="False" Apply3D="False">
+        <GradientArray />
+        <TextureArray />
+        <Instructions><![CDATA[
+comment:
+  
+  This controller colors each trap based on the
+  property 'Index Map' and the point's 'Trap Dwell'
+  'Trap Index' or 'Trap Delta'. You can define up to
+  16 colors and these are mapped to the index map
+  values. Offset can be used to shift the set of 
+  colors with respect to value 0.
+  
+  If Cutouts are active, the trap is divided into
+  N sectors and a user defined percent of each 
+  sector is inverted with respect to the 3D shading
+  effect. This gives the appearance that part of
+  the trap surface has been cutout or folded over.
+  
+  The Cutout effect only looks good if the trap 
+  is a solid shape. For example, the 'Shape', 
+  'Tangent Circles', 'Shapes' and 'Squares'
+  traps support a 'Solid' property that is used to 
+  produce a solid figure. You should check this
+  property to display Cutouts.
+  
+  Also note that the Cutout effect only works if
+  the trap's angle is given relative to the center 
+  of the solid shape. This is always the case when
+  the trap is composed of a single shape. However, 
+  when the trap is composed of several shapes arranged
+  in a pattern like the 'Tangent Circles', 'Shapes' and
+  'Squares' traps, the angle is given relative to the 
+  center of the pattern not the individual shapes. 
+  In those cases, you will need to check the 
+  'Alternate Angle' property on the properties page 
+  for the specific trap so the angle is given relative 
+  to the individual shapes.
+  
+global:
+  
+  const Complex angleShift = SectorAngle / 360
+  const Complex percentSolid = 1 - PercentCutout
+  
+color:
+  
+  switch (IndexMap) {
+    case IndexMapTypes.TrapDwell: index = Sample.TrapDwellRaw
+    case IndexMapTypes.TrapIndex: index = Sample.TrapIndexRaw
+    case IndexMapTypes.TrapDelta: index = Sample.TrapDeltaRaw
+    case IndexMapTypes.Alternate1Index: index = Sample.Alternate1IndexRaw
+  }
+  color = Colors[WrapIndex(Offset + index, Count)]
+  
+  if (ApplyCutouts) {
+    r = Sectors * Wrap(Sample.TrapAngle - angleShift)
+    r = r - Int(r)
+    v = Abs(Sample.TrapValue)
+    
+    compositeHeight = IIf(r < percentSolid, v, Blend(0.75, 0.25, v))
+  } else {
+    compositeHeight = Sample.TrapValue
+  }
+  
+properties:
+  
+  divider {
+    caption = "Index Map"
+  }
+  enum IndexMapTypes {
+    TrapDwell, "Trap Dwell"
+    TrapIndex, "Trap Index"
+    TrapDelta, "Trap Delta"
+    Alternate1Index , "Alternate 1 Index"
+  }
+  option IndexMap {
+    type = IndexMapTypes
+    caption = "Index Map"
+    details = "Color index map"
+    default = IndexMapTypes.TrapDwell
+  }
+  divider {
+    caption = "Color Map"
+  }
+  option Count {
+    type = IntegerEnum(1,32)
+    caption = "Count"
+    details = "Number of colors to use"
+    default = 8
+  }
+  option Colors {
+    type = ColorSet[Count]
+    caption = "Colors"
+    default = FF00AE, FF2020, FF8200, FFFF00, 00FF6C, 00FFFF, 4040FF, AE60FF
+  }
+  option Offset {
+    type = IntegerEnum(0,31)
+    caption = "Offset"
+    details = "Offset into set of colors"
+    default = 0
+  }
+  divider {
+    caption = "Cutouts (Solid traps only)"
+  }
+  option ApplyCutouts {
+    type = Boolean
+    caption = "Active"
+    details = "Activate cutout effects"
+    default = False
+  }
+  option Sectors {
+    type = IntegerEnum(2,16)
+    caption = "Sectors"
+    details = "Number of sectors"
+    default = 2
+    enabled = ApplyCutouts
+  }
+  option SectorAngle {
+    type = Float
+    caption = "Angle"
+    details = "Starting angle of 1st sector"
+    default = 0
+    range = [-360,360]
+    enabled = ApplyCutouts
+  }
+  option PercentCutout {
+    type = Float
+    caption = "Percent Cutout"
+    details = "Percent of sector that is cutout"
+    range = [0,1]
+    default = 0.5
+    enabled = ApplyCutouts
+  }
+]]></Instructions>
+        <PropertyValueOverrides>
+          <Option Name="IndexMap" Type="EnumOption" Value="IndexMapTypes.TrapDelta" />
+          <Option Name="Count" Type="IntegerEnumOption" Value="10" />
+          <Option Name="Colors" Type="ColorSetOption" Value="A9A9A9,B2B2B2,BABABA,C3C3C3,CBCBCB,D4D4D4,DCDCDC,E5E5E5,EDEDED,F6F6F6" />
+        </PropertyValueOverrides>
+      </OrbitTrapController>
+    </OrbitTrapControllerArray>
+    <SampleDataNormalizer>
+      <NormalizerDescriptor />
+    </SampleDataNormalizer>
+    <SampleDataNormalizer>
+      <NormalizerDescriptor />
+    </SampleDataNormalizer>
+    <SampleDataNormalizer>
+      <NormalizerDescriptor />
+    </SampleDataNormalizer>
+  </OrbitTrapInfo>
+  <TransformationArray>
+    <Transformation Id="7fc4bc2c-b961-4431-b074-277d7b29842b" Title="Identity">
+      <Instructions><![CDATA[]]></Instructions>
+      <PropertyValueOverrides />
+    </Transformation>
+  </TransformationArray>
+  <TriangleMetricSet>
+    <Instructions><![CDATA[metric = p1]]></Instructions>
+    <TriangleMetric />
+    <TriangleMetric />
+    <TriangleMetric />
+  </TriangleMetricSet>
+</Fractal>
